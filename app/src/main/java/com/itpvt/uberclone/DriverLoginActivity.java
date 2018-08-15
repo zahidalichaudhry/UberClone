@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -22,6 +25,8 @@ public class DriverLoginActivity extends AppCompatActivity {
     private EditText eEmail,ePassword;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,6 +35,8 @@ public class DriverLoginActivity extends AppCompatActivity {
         bRegister=(Button)findViewById(R.id.register);
         eEmail=(EditText)findViewById(R.id.email);
         ePassword=(EditText)findViewById(R.id.password);
+
+
         mAuth =FirebaseAuth.getInstance();
         authStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -61,8 +68,9 @@ public class DriverLoginActivity extends AppCompatActivity {
                          }else
                              {
                                  String user_id=mAuth.getCurrentUser().getUid();
-                                 DatabaseReference current_user_db= FirebaseDatabase.getInstance().getReference().child("Users").child("Drivers").child(user_id);
-                                 current_user_db.setValue(true);
+                                 DatabaseReference current_user_db= FirebaseDatabase.getInstance().getReference().child("Users")
+                                         .child("Drivers").child(user_id).child("name");
+                                 current_user_db.setValue(email);
 
                              }
 

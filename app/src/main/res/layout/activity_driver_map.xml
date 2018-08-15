@@ -11,6 +11,13 @@
         android:layout_height="wrap_content"
         android:id="@+id/logout"
         android:text="logout"/>
+    <Button
+        android:layout_weight="1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/setting"
+        android:layout_gravity="right"
+        android:text="Setting"/>
 <fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -22,10 +29,10 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         android:id="@+id/customerInfo"
         android:layout_gravity="bottom"
         android:orientation="vertical"
-        android:visibility="gone"
         android:background="@android:color/white"
         android:elevation="1dp"
         android:translationZ="1dp">
@@ -44,12 +51,12 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingLeft="40sp">
-            <!--<TextView-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:id="@+id/customerDestination"-->
-                <!--android:paddingBottom="10sp"-->
-                <!--android:text="Destination: &#45;&#45;"/>-->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/customerDestination"
+                android:paddingBottom="10sp"
+                android:text="Destination: --"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

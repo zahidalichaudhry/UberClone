@@ -11,8 +11,8 @@
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -47,7 +47,8 @@
             android:name=".DriverMapActivity"
             android:label="@string/title_activity_driver_map" />
         <activity android:name=".CustomerMapActivity" />
-        <activity android:name=".CutomerSettingActivity"></activity>
+        <activity android:name=".CutomerSettingActivity" />
+        <activity android:name=".DriverSettingActivity"></activity>
     </application>
 
 </manifest>

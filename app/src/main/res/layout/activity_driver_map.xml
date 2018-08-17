@@ -18,7 +18,8 @@
         android:id="@+id/setting"
         android:layout_gravity="right"
         android:text="Setting"/>
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
+<fragment
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/map"
@@ -29,8 +30,6 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:id="@+id/customerInfo"
         android:layout_gravity="bottom"
         android:orientation="vertical"
         android:background="@android:color/white"
@@ -39,6 +38,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:id="@+id/customerInfo"
         android:orientation="horizontal">
         <ImageView
             android:layout_width="100sp"
@@ -70,6 +71,12 @@
                 android:paddingBottom="10sp"
                 android:paddingTop="20sp"/>
         </LinearLayout>
+
     </LinearLayout>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/rideStatus"
+            android:text="Picked Customer"/>
     </LinearLayout>
 </FrameLayout>

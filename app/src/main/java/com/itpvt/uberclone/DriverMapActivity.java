@@ -9,10 +9,13 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,12 +31,14 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -63,15 +68,19 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
     private LatLng destinationLatLng;
     private  String customerId="",destination;
     private Boolean islogingOut=false;
+    private LatLng pickupLatLng;
+    private float rideDistance;
 
+
+    private Switch mWorkingSwitch;
 
     private LinearLayout mCustomerInfo;
-
+    private static final float DEFAULT_ZOOM = 13f;
     private ImageView mCustomerProfileImage;
 
     private TextView mCustomerName, mCustomerPhone, mCustomerDestination;
     private List<Polyline> polylines;
-    private static final int[] COLORS = new int[]{R.color.primary_dark_material_light};
+    private static final int[] COLORS = new int[]{R.color.colorPrimaryDark};
 
 
 
@@ -93,7 +102,21 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
         mCustomerPhone = (TextView) findViewById(R.id.customerPhone);
         mCustomerDestination = (TextView) findViewById(R.id.customerDestination);
 
+        mWorkingSwitch = (Switch) findViewById(R.id.workingSwitch);
         mSettings = (Button) findViewById(R.id.setting);
+        mWorkingSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked)
+            {
+                if (isChecked)
+                {
+                    connectDriver();
+                }else
+                    {
+                        disconnetDriver();
+                    }
+            }
+        });
         mSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -276,7 +299,7 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
                     {
                         locationlng=Double.parseDouble(map.get(1).toString());
                     }
-                    LatLng pickupLatLng=new LatLng(locationlat,locationlng);
+                    pickupLatLng=new LatLng(locationlat,locationlng);
                     pickupmarker= mMap.addMarker(new MarkerOptions().position(pickupLatLng).title("Pickup Location")
                     .icon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_pickup)));
                     getRouteToMarker(pickupLatLng);
@@ -315,6 +338,7 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
         GeoFire geoFire = new GeoFire(ref);
         geoFire.removeLocation(customerId);
         customerId="";
+        rideDistance=0;
         if (pickupmarker!=null)
         {
             pickupmarker.remove();
@@ -344,6 +368,12 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
         map.put("customer",customerId);
         map.put("rating",0);
         map.put("timestamp",getCurrentTimestamp());
+        map.put("destination",destination);
+        map.put("location/from/lat",pickupLatLng.latitude);
+        map.put("location/from/lng",pickupLatLng.longitude);
+        map.put("location/to/lat",destinationLatLng.latitude);
+        map.put("location/to/lng",destinationLatLng.longitude);
+        map.put("distance",rideDistance);
         historyRef.child(requestId).updateChildren(map);
 
     }
@@ -382,10 +412,6 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(1000);
          mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
 
     }
 
@@ -403,16 +429,19 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
     public void onPointerCaptureChanged(boolean hasCapture) {
 
     }
-
     @Override
     public void onLocationChanged(Location location) {
         if (getApplicationContext() != null) {
+            if (!customerId.equals(""))
+            {
+                rideDistance+=mLastLocation.distanceTo(location)/1000;
+            }
 
             mLastLocation = location;
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-            mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
-
+//            mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+            moveCamera(new LatLng(location.getLatitude(),location.getLongitude()),DEFAULT_ZOOM);
             String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
 
@@ -439,6 +468,14 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
 
         }
     }
+    private void connectDriver()
+    {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+
+    }
     private void disconnetDriver()
     {
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
@@ -447,16 +484,16 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
         GeoFire geoFire=new GeoFire(ref);
         geoFire.removeLocation(userId);
     }
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (!islogingOut)
-        {
-            disconnetDriver();
-        }
-
-
-    }
+//    @Override
+//    protected void onStop() {
+//        super.onStop();
+//        if (!islogingOut)
+//        {
+//            disconnetDriver();
+//        }
+//
+//
+//    }
 
     @Override
     public void onRoutingFailure(RouteException e)
@@ -477,6 +514,7 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
     @Override
     public void onRoutingSuccess(ArrayList<Route> route, int shortestRouteIndex)
     {
+        AutoZoomFunction();
         if(polylines.size()>0) {
             for (Polyline poly : polylines) {
                 poly.remove();
@@ -514,5 +552,24 @@ public class DriverMapActivity extends FragmentActivity implements OnMapReadyCal
             line.remove();
         }
         polylines.clear();
+    }
+    public void AutoZoomFunction()
+    {
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder.include(pickupLatLng);
+        builder.include(destinationLatLng);
+        LatLngBounds bounds = builder.build();
+
+        int width = getResources().getDisplayMetrics().widthPixels;
+        int padding = (int) (width*0.2);
+
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+
+        mMap.animateCamera(cameraUpdate);
+    }
+    private void moveCamera(LatLng latLng,float zoom)
+    {
+//        Log.d(TAG,"moveCamera:moving the camera to:lat"+latLng.latitude+",lng:"+latLng.longitude);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,zoom));
     }
 }

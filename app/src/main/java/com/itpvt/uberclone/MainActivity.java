@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mDriver=(Button)findViewById(R.id.driver);
         mCustomer=(Button)findViewById(R.id.customer);
+        startService(new Intent(MainActivity.this,onAppKilled.class));
         getLocationPermission();
         mDriver.setOnClickListener(new View.OnClickListener() {
             @Override

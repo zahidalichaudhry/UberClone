@@ -82,6 +82,7 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/driverCar"
                     android:paddingBottom="10sp"
+                    android:textColor="@color/cardview_dark_background"
                     android:text="Car: --"/>
                 <TextView
                     android:layout_width="wrap_content"
@@ -95,6 +96,13 @@
                     android:id="@+id/driverPhone"
                     android:paddingBottom="10sp"
                     android:paddingTop="20sp"/>
+                <RatingBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ratingBar"
+                    android:layout_gravity="center"
+                    android:numStars="5"
+                    android:stepSize="0.1"/>
             </LinearLayout>
         </LinearLayout>
         <RadioGroup

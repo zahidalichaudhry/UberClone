@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -60,7 +61,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     LocationRequest mLocationRequest;
     private RadioGroup mRadioGroup;
     private Button mLogout,mRequest,mSettings,mHistory;
-
+    private RatingBar mratingBar;
     private Marker pickupMarker;
     private Boolean requestbol=false;
     private LatLng pickupLocation;
@@ -68,7 +69,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
     private String destination,requestServics;
 
     private ImageView mdriverProfileImage;
-
+    private static final float DEFAULT_ZOOM = 12f;
     private LinearLayout mDriverInfo;
     private TextView mdriverName, mdriverPhone, mdriverCar;
 
@@ -88,6 +89,8 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         mdriverName = (TextView) findViewById(R.id.driverName);
         mdriverPhone = (TextView) findViewById(R.id.driverPhone);
         mdriverCar = (TextView) findViewById(R.id.driverCar);
+
+        mratingBar = (RatingBar) findViewById(R.id.ratingBar);
 
         mLogout = (Button) findViewById(R.id.logout);
         mRequest = (Button) findViewById(R.id.request);
@@ -118,6 +121,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
             @Override
             public void onClick(View view)
             {
+                mRequest.setEnabled(false);
                 if (requestbol)
                 {
                     endRide();
@@ -227,6 +231,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                                     getDriverLocation();
                                     getDriverInfo();
                                     getHasRideEnded();
+                                    mRequest.setEnabled(true);
 
                                 }
                             }
@@ -259,7 +264,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
             @Override
             public void onGeoQueryReady()
             {
-                if (!driverFound)
+                if (!driverFound&&radius<20)
                 {
                     radius++;
                     getClosestDriver();
@@ -301,7 +306,19 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                     {
                         Glide.with(getApplication()).load(map.get("profileImageUrl").toString()).into(mdriverProfileImage);
                     }
-
+                    int ratingSum=0;
+                    int ratingTotal=0;
+                    float ratingAverge=0;
+                    for (DataSnapshot child:dataSnapshot.child("rating").getChildren())
+                    {
+                        ratingSum=ratingSum+Integer.valueOf(child.getValue().toString());
+                        ratingTotal++;
+                    }
+                    if (ratingTotal!=0)
+                    {
+                        ratingAverge=ratingSum/ratingTotal;
+                        mratingBar.setRating(ratingAverge);
+                    }
 
                 }
             }
@@ -365,12 +382,17 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         {
             pickupMarker.remove();
         }
+        if (mDriverMarker!=null)
+        {
+            mDriverMarker.remove();
+        }
         mRequest.setText("Call Uber");
         mDriverInfo.setVisibility(View.GONE);
         mdriverName.setText("");
         mdriverPhone.setText("");
         mdriverProfileImage.setImageResource(R.drawable.user);
         mdriverCar.setText("");
+        mRequest.setEnabled(true);
     }
 
     private Marker mDriverMarker;
@@ -415,7 +437,8 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
                     if (distance<100)
                     {
                         mRequest.setText("Driver is Here");
-                    }else
+                    }
+                    else
                         {
                             mRequest.setText("Driver Found"+String.valueOf(distance));
                         }
@@ -491,7 +514,7 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
         LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
-//
+        moveCamera(new LatLng(location.getLatitude(),location.getLongitude()),DEFAULT_ZOOM);
 //        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 //        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("driversAvailable");
 //        GeoFire geoFire=new GeoFire(ref);
@@ -507,5 +530,10 @@ public class CustomerMapActivity extends FragmentActivity implements OnMapReadyC
 //        GeoFire geoFire=new GeoFire(ref);
 //        geoFire.removeLocation(userId);
 
+    }
+    private void moveCamera(LatLng latLng,float zoom)
+    {
+//        Log.d(TAG,"moveCamera:moving the camera to:lat"+latLng.latitude+",lng:"+latLng.longitude);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,zoom));
     }
 }
